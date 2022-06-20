@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-// Engine is the main struct of geeorm, manages all db sessions and transactions.
+//连接数据库，返回 *sql.DB。
+//调用 db.Ping()，检查数据库是否能够正常连接
 type Engine struct {
 	db      *sql.DB
 	dialect dialect.Dialect

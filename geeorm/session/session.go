@@ -9,16 +9,17 @@ import (
 	"strings"
 )
 
-// Session keep a pointer to sql.DB and provides all execution of all
-// kind of database operations.
+//用于实现与数据库的交
 type Session struct {
 	db       *sql.DB
 	dialect  dialect.Dialect
 	tx       *sql.Tx
 	refTable *schema.Schema
 	clause   clause.Clause
-	sql      strings.Builder
-	sqlVars  []interface{}
+	//用来拼接 SQL 语句
+	sql strings.Builder
+	//SQL 语句中占位符的对应值
+	sqlVars []interface{}
 }
 
 // New creates a instance of Session
