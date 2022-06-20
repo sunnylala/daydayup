@@ -8,6 +8,11 @@ import (
 	"sync"
 )
 
+var (
+	_mu     sync.RWMutex
+	_groups = make(map[string]*Group)
+)
+
 //Group 是 GeeCache 最核心的数据结构，负责与用户的交互，并且控制缓存值存储和获取的流程。
 type Group struct {
 	//一个 Group 可以认为是一个缓存的命名空间，每个 Group 拥有一个唯一的名称 name
@@ -36,15 +41,10 @@ func (f GetterFunc) Get(key string) ([]byte, error) {
 	return f(key)
 }
 
-var (
-	mu     sync.RWMutex
-	groups = make(map[string]*Group)
-)
-
 func GetGroup(name string) *Group {
-	mu.RLock()
-	g := groups[name]
-	mu.RUnlock()
+	_mu.RLock()
+	g := _groups[name]
+	_mu.RUnlock()
 	return g
 }
 
@@ -53,15 +53,15 @@ func NewGroup(name string, cacheBytes int64, getter Getter) *Group {
 	if getter == nil {
 		panic("nil Getter")
 	}
-	mu.Lock()
-	defer mu.Unlock()
+	_mu.Lock()
+	defer _mu.Unlock()
 	g := &Group{
 		name:      name,
 		getter:    getter,
 		mainCache: cache{cacheBytes: cacheBytes},
 		loader:    &singleflight.Group{},
 	}
-	groups[name] = g
+	_groups[name] = g
 	return g
 }
 

@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	defaultBasePath = "/_geecache/"
-	defaultReplicas = 50
+	_defaultBasePath = "/_geecache/"
+	_defaultReplicas = 50
 )
 
 //既具备了提供 HTTP 服务的能力，也具备了根据具体的 key，创建 HTTP 客户端从远程节点获取缓存值的能力。
@@ -38,11 +38,9 @@ type HTTPPool struct {
 func NewHTTPPool(self string) *HTTPPool {
 	return &HTTPPool{
 		self:     self,
-		basePath: defaultBasePath,
+		basePath: _defaultBasePath,
 	}
 }
-
-var _ PeerPicker = (*HTTPPool)(nil)
 
 // Log info with server name
 func (p *HTTPPool) Log(format string, v ...interface{}) {
@@ -81,7 +79,7 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 将缓存值作为 httpResponse 的 body 返回
-	//protobuf 广泛地应用于远程过程调用(RPC) 的二进制传输，使用 protobuf 的目的非常简单，为了获得更高的性能。
+	// protobuf 广泛地应用于远程过程调用(RPC) 的二进制传输，使用 protobuf 的目的非常简单，为了获得更高的性能。
 	// 传输前使用 protobuf 编码，接收方再进行解码，可以显著地降低二进制传输的大小。
 	// 另外一方面，protobuf 可非常适合传输结构化数据，便于通信字段的扩展
 	body, err := proto.Marshal(&pb.Response{Value: view.ByteSlice()})
@@ -99,7 +97,7 @@ func (p *HTTPPool) Set(peers ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	//实例化了一致性哈希算法，并且添加了传入的节点
-	p.peers = consistenthash.New(defaultReplicas, nil)
+	p.peers = consistenthash.New(_defaultReplicas, nil)
 	p.peers.Add(peers...)
 
 	//并为每一个节点创建了一个 HTTP 客户端 httpGetter
@@ -108,6 +106,9 @@ func (p *HTTPPool) Set(peers ...string) {
 		p.httpGetters[peer] = &httpGetter{baseURL: peer + p.basePath}
 	}
 }
+
+//key-->gather
+var _ PeerPicker = (*HTTPPool)(nil)
 
 // 包装了一致性哈希算法的 Get() 方法，根据具体的 key，选择节点，返回节点对应的 HTTP 客户端。
 func (p *HTTPPool) PickPeer(key string) (PeerGetter, bool) {
