@@ -1,4 +1,4 @@
-package daydayup
+package main
 
 import (
 	"container/heap"
