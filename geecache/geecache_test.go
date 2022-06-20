@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+//模拟远端
 var db = map[string]string{
 	"Tom":  "630",
 	"Jack": "589",
