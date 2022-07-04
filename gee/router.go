@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+// 接下来我们实现的动态路由具备以下两个功能。
+// 参数匹配:。例如 /p/:lang/doc，可以匹配 /p/c/doc 和 /p/go/doc。
+// 通配*。例如 /static/*filepath，可以匹配/static/fav.ico，也可以匹配/static/js/jQuery.js，
+// 这种模式常用于静态服务器，能够递归地匹配子路径。
+
 type router struct {
 	roots    map[string]*node
 	handlers map[string]HandlerFunc
@@ -48,8 +53,8 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 func (r *router) getRoute(method string, path string) (*node, map[string]string) {
 	searchParts := parsePattern(path)
 	params := make(map[string]string)
-	root, ok := r.roots[method]
 
+	root, ok := r.roots[method]
 	if !ok {
 		return nil, nil
 	}
@@ -83,6 +88,8 @@ func (r *router) getRoutes(method string) []*node {
 	return nodes
 }
 
+// index是记录当前执行到第几个中间件，当在中间件中调用Next方法时，控制权交给了下一个中间件，
+// 直到调用到最后一个中间件，然后再从后往前，调用每个中间件在Next方法之后定义的部分。
 func (r *router) handle(c *Context) {
 	n, params := r.getRoute(c.Method, c.Path)
 
