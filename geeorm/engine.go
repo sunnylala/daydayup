@@ -78,6 +78,7 @@ func (engine *Engine) Transaction(f TxFunc) (result interface{}, err error) {
 	return f(s)
 }
 
+// difference 用来计算前后两个字段切片的差集。新表 - 旧表 = 新增字段，旧表 - 新表 = 删除字段
 // difference returns a - b
 func difference(a []string, b []string) (diff []string) {
 	mapB := make(map[string]bool)
@@ -92,6 +93,12 @@ func difference(a []string, b []string) (diff []string) {
 	return
 }
 
+// 第一步：从 old_table 中挑选需要保留的字段到 new_table 中。
+// 第二步：删除 old_table。
+// 第三步：重命名 new_table 为 old_table。
+
+// 使用 ALTER 语句新增字段。
+// 使用创建新表并重命名的方式删除字段。
 // Migrate table
 func (engine *Engine) Migrate(value interface{}) error {
 	_, err := engine.Transaction(func(s *session.Session) (result interface{}, err error) {

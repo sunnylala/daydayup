@@ -13,8 +13,17 @@ type HandlerFunc func(*Context)
 
 // Engine implement the interface of ServeHTTP
 type (
+	// 分组控制(Group Control)是 Web 框架应提供的基础功能之一。
+	// 所谓分组，是指路由的分组。如果没有路由分组，我们需要针对每一个路由进行控制。
+	// 但是真实的业务场景中，往往某一组路由需要相似的处理。例如：
+	// 以/post开头的路由匿名可访问。
+	// 以/admin开头的路由需要鉴权。
+	// 以/api开头的路由是 RESTful 接口，可以对接第三方平台，需要三方平台鉴权。
 	RouterGroup struct {
-		prefix      string
+		prefix string
+		// 中间件(middlewares)，简单说，就是非业务的技术类组件。
+		// Web 框架本身不可能去理解所有的业务，因而不可能实现所有的功能。
+		// 因此，框架需要有一个插口，允许用户自己定义功能，嵌入到框架中，仿佛这个功能是框架原生支持的一样
 		middlewares []HandlerFunc // support middleware
 		parent      *RouterGroup  // support nesting
 		engine      *Engine       // all groups share a Engine instance

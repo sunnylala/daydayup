@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// 实现各个子句的生成规则
+
 type generator func(values ...interface{}) (string, []interface{})
 
 var generators map[Type]generator
