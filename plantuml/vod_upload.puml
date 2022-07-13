@@ -1,0 +1,47 @@
+@startuml upload
+
+title vod上传
+
+== 预上传 ==
+autonumber
+
+sdk -> uploadapi: http post "/vod/preupload"
+
+alt video类型资源
+uploadapi -> mediamanager: rpc GenerateVID 生成ID
+mediamanager-> Redis: incr自增ID
+mediamanager-> uploadapi: 返回cid+uid+schemaIndex+tableIndexStr生成ID
+else image、audio资源
+uploadapi -> mediamanager: rpc GenerateMid 生成ID
+mediamanager-> Redis: sonyflake生成分布式唯一ID\nredis保存
+mediamanager-> uploadapi: 返回ID
+end
+
+uploadapi -> Strategyservice: rpc GetStrategyInfo获取调度策略
+uploadapi ->uploadapi: 根据serviceOrder获取Token及其他信息,如果未取到结果，兜底返回网宿云
+uploadapi -> sdk: 返回结果 云服务列表
+
+
+== SDK上传 ==
+autonumber
+sdk->cloud:文件传输
+cloud --> uss:异步回迁
+
+== 回报结果，触发视频处理流程 ==
+autonumber
+sdk -> uploadapi: http post "/vod/reportupload"
+note right 
+上报质量
+end note
+uploadapi -> prome: 上报普罗媒资
+uploadapi ->kafka:通过kafka上报到clickhouse
+
+
+uploadapi -> mediamanager: 创建媒资信息落库\nrpc CreateVideoInfoWithFormat/CreateMediaInfoAndFormat
+mediamanager -> mysql: insert video_infos_tab_\n insert video_format_infos_tab_
+mediamanager -> redis: redis处理
+uploadapi -> vodprocess: rpc SubmitFlowTask提交流程任务
+uploadapi -> sdk: 返回结果
+
+
+@enduml
