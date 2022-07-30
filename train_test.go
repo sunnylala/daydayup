@@ -3,8 +3,11 @@ package main
 import (
 	"container/heap"
 	"fmt"
-	"math"
+	"io"
+	"io/ioutil"
+	"os"
 	"sort"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -215,8 +218,50 @@ func min(a, b int) int {
 	return a
 }
 
-func TestCode(t *testing.T) {
-	a := math.MaxInt32 - 1
+func TestString(t *testing.T) {
+	s := "我是中国人"
+	fmt.Println(s)
+	fmt.Println([]rune(s))
+	fmt.Println(string([]rune(s)))
 
-	fmt.Println(".....:", a)
+	fmt.Println(".....:", strings.Index(s, "是"))
+	fmt.Println(".....:", strings.IndexRune(s, '是'))
+	fmt.Println(string([]rune(s)[3]))
+}
+
+func TestTime(t *testing.T) {
+	fmt.Println(time.Now())
+	now := time.Now()
+	fmt.Println(now.Weekday().String())
+
+	fmt.Println(now.Format("2006/01/02 15:04 PM"))
+}
+
+func TestFile(t *testing.T) {
+	f, err := os.OpenFile("./1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer f.Close()
+	f.WriteString("test a string!")
+
+	buf := make([]byte, 1024)
+	var str string
+	f.Seek(0, io.SeekStart)
+	for {
+		n, ferr := f.Read(buf)
+		if ferr != nil && ferr != io.EOF {
+			fmt.Println(ferr.Error())
+			break
+		}
+		if n == 0 {
+			break
+		}
+		fmt.Println(n)
+		str += string(buf[0:n])
+	}
+	fmt.Println(str)
+
+	content, err := ioutil.ReadAll(f)
+	fmt.Println(string(content))
 }
